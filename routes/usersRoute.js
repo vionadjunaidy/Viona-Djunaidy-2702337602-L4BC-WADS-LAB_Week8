@@ -1,5 +1,5 @@
 import express from 'express';
-import { signIn, signUp, userInfor } from '../controllers/users.js';
+import { signIn, signUp, userInfor, updateUser, deleteUser } from '../controllers/users.js';
 import { auth } from '../middleware/auth.js';
 
 const router = express.Router()
@@ -98,6 +98,29 @@ router.post("/signup", signUp)
  *     responses:
  *       '200':
  *         description: Sign in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Sign In successfully!"
+ *                 access_token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "507f1f77bcf86cd799439011"
+ *                     name:
+ *                       type: string
+ *                       example: "juwono"
+ *                     email:
+ *                       type: string
+ *                       example: "juwono@gmail.com"
  *       '403':
  *         description: Requested resource is forbidden
  *       '400':
@@ -106,5 +129,67 @@ router.post("/signup", signUp)
  *         description: Internal server error
  */
 router.post("/signin", signIn)
+
+/**
+ * @openapi
+ * /update-user:
+ *   patch:
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Update user details (requires authentication)
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Name"
+ *               address:
+ *                 type: string
+ *                 example: "Updated Address, City"
+ *               phone_number:
+ *                 type: string
+ *                 example: "08123456789"
+ *               user_image:
+ *                 type: string
+ *                 example: "https://api.dicebear.com/9.x/big-ears-neutral/svg?seed=UpdatedAvatar"
+ *     responses:
+ *       '200':
+ *         description: User updated successfully
+ *       '400':
+ *         description: Bad request
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.patch("/update-user", auth, updateUser)
+
+/**
+ * @openapi
+ * /delete-user:
+ *   delete:
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Delete user account (requires authentication)
+ *     responses:
+ *       '200':
+ *         description: User deleted successfully
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+router.delete("/delete-user", auth, deleteUser)
 
 export default router

@@ -12,10 +12,14 @@ import usersRoute from "./routes/usersRoute.js";
 dotenv.config();
 
 const app = express();
-dotenv.config()
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5000',
+    credentials: true,
+    exposedHeaders: ['Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(cookieParser());
 app.use("/api/auth", router);
 

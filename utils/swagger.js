@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
  *       type: apiKey
  *       in: header
  *       name: Authorization
+ *       description: Enter your token without Bearer prefix
  *   schemas:
  *      User:
  *         type: object
@@ -124,6 +125,16 @@ const swaggerSpec = swaggerJsDoc({
                 description: 'Development - todo'
             }
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'Authorization',
+                    description: 'Enter your token without Bearer prefix'
+                }
+            }
+        },
         security: [
             {
                 bearerAuth: []

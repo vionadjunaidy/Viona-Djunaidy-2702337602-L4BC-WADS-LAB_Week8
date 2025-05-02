@@ -27,6 +27,11 @@ function createRefreshToken(payload) {
     return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' })
 }
 
+// create access token
+function createAccessToken(payload) {
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
+}
+
 // user sign-up
 export const signUp = async (req, res) => {
     try {
@@ -160,6 +165,7 @@ export const signIn = async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: "Invalid Credentials" });
 
         const refresh_token = createRefreshToken({ id: user._id });
+        const access_token = createAccessToken({ id: user._id });
 
         const expiry = 24 * 60 * 60 * 1000;
 
@@ -170,12 +176,16 @@ export const signIn = async (req, res) => {
             expires: new Date(Date.now() + expiry)
         });
 
-        res.json({
+        // Set Authorization header
+        res.set('Authorization', `Bearer ${access_token}`);
+
+        res.status(200).json({
             message: "Sign In successfully!",
+            access_token,
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
             }
         });
 
@@ -194,4 +204,56 @@ export const userInfor = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
+
+// update user details
+export const updateUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { name, address, phone_number, user_image } = req.body;
+
+        const updateData = {};
+        if (name) {
+            if (name.length < 3) {
+                return res.status(400).json({ message: "Your name must be at least 3 letters long" });
+            }
+            updateData.name = name;
+        }
+        if (address) updateData.address = address;
+        if (phone_number) updateData.phone_number = phone_number;
+        if (user_image) updateData.user_image = user_image;
+
+        const updatedUser = await Users.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            message: "User updated successfully",
+            user: updatedUser
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// delete user
+export const deleteUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const deletedUser = await Users.findByIdAndDelete(userId);
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};

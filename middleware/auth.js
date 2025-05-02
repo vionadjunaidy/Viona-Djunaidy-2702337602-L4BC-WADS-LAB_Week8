@@ -2,16 +2,21 @@ import jwt from 'jsonwebtoken';
 
 export const auth = (req, res, next) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) return res.status(403).json({ message: "Token Expired or Invalid Authentication." })
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ message: "Authentication required. Please provide a token." });
+        }
 
-        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-            if (err) return res.status(403).json({ message: "Token Expired or Invalid Authentication." })
+        // Remove 'Bearer ' prefix if it exists
+        const tokenValue = token.startsWith('Bearer ') ? token.slice(7) : token;
 
-            req.user = user
-            next()
-        })
+        jwt.verify(tokenValue, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+            if (err) return res.status(403).json({ message: "Token expired or invalid." });
+
+            req.user = user;
+            next();
+        });
     } catch (error) {
-        return res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message });
     }
 }
